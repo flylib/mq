@@ -1,2 +1,2 @@
 # mq-consumer
-Support multiple mq consumption
+Compatible with any message queue
