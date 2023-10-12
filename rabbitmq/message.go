@@ -3,13 +3,13 @@ package rabbitmq
 import (
 	"errors"
 	"fmt"
-	amqpconsumer "github.com/flylib/mq-consumer"
+	"github.com/flylib/mq"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type message struct {
 	origin amqp.Delivery
-	ctx    *amqpconsumer.AppContext
+	ctx    *mq.AppContext
 }
 
 func (m *message) Ack() error {

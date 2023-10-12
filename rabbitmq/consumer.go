@@ -1,33 +1,35 @@
 package rabbitmq
 
 import (
-	amqpconsumer "github.com/flylib/mq-consumer"
+	"github.com/flylib/mq"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"runtime/debug"
 )
 
 type consumer struct {
-	ctx       *amqpconsumer.AppContext
+	ctx       *mq.AppContext
 	option    option
 	conn      *amqp.Connection
-	restartCh chan amqpconsumer.ITopicHandler
+	restartCh chan mq.ITopicHandler
 }
 
-func Dial(ctx *amqpconsumer.AppContext, url string, options ...Option) (amqpconsumer.IClient, error) {
+func NewConsumer(ctx *mq.AppContext, options ...Option) mq.IConsumer {
 	var c = consumer{
 		ctx:       ctx,
-		restartCh: make(chan amqpconsumer.ITopicHandler),
+		restartCh: make(chan mq.ITopicHandler),
 	}
 	for _, f := range options {
 		f(&c.option)
 	}
-	conn, err := amqp.DialConfig(url, c.option.Config)
-	c.conn = conn
-	return &c, err
+	return &c
 }
 
-func (c *consumer) Start() (err error) {
-	c.ctx.RangeTopicHandler(func(handler amqpconsumer.ITopicHandler) {
+func (c *consumer) Working(url string) (err error) {
+	c.conn, err = amqp.DialConfig(url, c.option.Config)
+	if err != nil {
+		return
+	}
+	c.ctx.RangeTopicHandler(func(handler mq.ITopicHandler) {
 		err = c.working(handler)
 		if err != nil {
 			err = err
@@ -44,7 +46,7 @@ func (c *consumer) Start() (err error) {
 	return nil
 }
 
-func (c *consumer) working(handler amqpconsumer.ITopicHandler) (err error) {
+func (c *consumer) working(handler mq.ITopicHandler) (err error) {
 
 	var ch *amqp.Channel
 	ch, err = c.conn.Channel()
@@ -83,9 +85,9 @@ func (c *consumer) working(handler amqpconsumer.ITopicHandler) (err error) {
 			err := handler.Handler(&msg)
 			if err != nil {
 				switch handler.OnErrorAction() {
-				case amqpconsumer.Reject:
+				case mq.Reject:
 					msg.Reject()
-				case amqpconsumer.Requeue:
+				case mq.Requeue:
 					msg.Requeue()
 				}
 			}

@@ -1,4 +1,4 @@
-package amqpconsumer
+package mq
 
 type ILogger interface {
 	Info(args ...any)

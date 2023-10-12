@@ -1,9 +1,12 @@
-package amqpconsumer
+package mq
 
 type OnErrorAction int8
 
-type IClient interface {
-	Start() error
+type IProducer struct {
+}
+
+type IConsumer interface {
+	Working(url string) error
 }
 
 type ITopicHandler interface {

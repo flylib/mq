@@ -1,4 +1,4 @@
-module github.com/flylib/mq-consumer
+module github.com/flylib/mq
 
 go 1.18
 

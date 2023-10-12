@@ -1,4 +1,4 @@
-package amqpconsumer
+package mq
 
 import (
 	"github.com/flylib/goutils/codec/json"

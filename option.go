@@ -1,4 +1,4 @@
-package amqpconsumer
+package mq
 
 const (
 	NotProcessed OnErrorAction = iota

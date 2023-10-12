@@ -1,7 +1,7 @@
 package main
 
 import (
-	amqpconsumer "github.com/flylib/mq-consumer"
+	"github.com/flylib/mq"
 	"log"
 	"time"
 )
@@ -16,11 +16,11 @@ func (t *test) Topic() string {
 	return "test"
 }
 
-func (t *test) OnErrorAction() amqpconsumer.OnErrorAction {
-	return amqpconsumer.NotProcessed
+func (t *test) OnErrorAction() mq.OnErrorAction {
+	return mq.NotProcessed
 }
 
-func (t *test) Handler(msg amqpconsumer.IMessage) error {
+func (t *test) Handler(msg mq.IMessage) error {
 	time.Sleep(time.Second)
 	var data Msg
 	err := msg.Unmarshal(&data)
