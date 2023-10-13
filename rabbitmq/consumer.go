@@ -116,11 +116,9 @@ func (c *consumer) consuming(handler mq.ITopicHandler) (err error) {
 			}
 		}()
 
+		var msg message = message{ctx: c.ctx}
 		for item := range deliveryCh {
-			msg := message{
-				origin: item,
-				ctx:    c.ctx,
-			}
+			msg.origin = item
 			err := handler.Handler(&msg)
 			if err != nil {
 				switch handler.OnErrorAction() {
