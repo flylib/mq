@@ -4,19 +4,27 @@ import (
 	"github.com/flylib/mq"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"runtime/debug"
+	"sync"
+	"time"
 )
 
 type consumer struct {
-	ctx       *mq.AppContext
-	option    option
-	conn      *amqp.Connection
-	restartCh chan mq.ITopicHandler
+	ctx                   *mq.AppContext
+	option                option
+	conn                  *amqp.Connection
+	restartTopicHandlerCh chan mq.ITopicHandler
+	reconnecting          sync.Once
+	reconnectTimes        uint32
+	url                   string
 }
 
 func NewConsumer(ctx *mq.AppContext, options ...Option) mq.IConsumer {
 	var c = consumer{
-		ctx:       ctx,
-		restartCh: make(chan mq.ITopicHandler),
+		ctx: ctx,
+		option: option{
+			reconnectionInterval: time.Second * 15,
+			maxTryReconnectTimes: 10,
+		},
 	}
 	for _, f := range options {
 		f(&c.option)
@@ -29,25 +37,46 @@ func (c *consumer) Working(url string) (err error) {
 	if err != nil {
 		return
 	}
-	c.ctx.RangeTopicHandler(func(handler mq.ITopicHandler) {
-		err = c.working(handler)
-		if err != nil {
+
+	//reset
+	c.url = url
+	c.reconnectTimes = 0
+	c.restartTopicHandlerCh = make(chan mq.ITopicHandler)
+	c.reconnecting = sync.Once{}
+
+	//topic channel consume
+	c.ctx.RangeTopicHandler(func(topic mq.ITopicHandler) {
+		errRun := c.consuming(topic)
+		if errRun != nil {
 			err = err
 			return
 		}
 	})
-
 	if err != nil {
 		return
 	}
-	for handler := range c.restartCh {
-		c.working(handler)
+	for topic := range c.restartTopicHandlerCh {
+		c.consuming(topic)
 	}
-	return nil
+
+	// reconnect
+	for {
+		time.Sleep(c.option.reconnectionInterval)
+		c.reconnectTimes++
+		c.ctx.Infof("Try to reconnect %d times", c.reconnectTimes)
+		err = c.Working(url)
+		if err != nil {
+			c.ctx.Error("reconnect err:", err)
+		}
+		if c.option.maxTryReconnectTimes != 0 &&
+			c.reconnectTimes >= c.option.maxTryReconnectTimes {
+			break
+		}
+	}
+	return err
 }
 
-func (c *consumer) working(handler mq.ITopicHandler) (err error) {
-
+func (c *consumer) consuming(handler mq.ITopicHandler) (err error) {
 	var ch *amqp.Channel
 	ch, err = c.conn.Channel()
 	if err != nil {
@@ -72,8 +101,17 @@ func (c *consumer) working(handler mq.ITopicHandler) (err error) {
 		defer func() {
 			ch.Close()
 			if err := recover(); err != nil {
-				c.ctx.Error("panic error:%s\n%s", err, string(debug.Stack()))
-				c.restartCh <- handler
+				c.ctx.Error("panic error:%s\n\n%s", err, string(debug.Stack()))
+				if !c.conn.IsClosed() {
+					c.restartTopicHandlerCh <- handler
+				}
+			} else {
+				//Enter reconnection state
+				if c.conn.IsClosed() {
+					c.reconnecting.Do(func() {
+						close(c.restartTopicHandlerCh)
+					})
+				}
 			}
 		}()
 

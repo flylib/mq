@@ -21,7 +21,7 @@ func (t *test) OnErrorAction() mq.OnErrorAction {
 }
 
 func (t *test) Handler(msg mq.IMessage) error {
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 3)
 	var data Msg
 	err := msg.Unmarshal(&data)
 	if err != nil {
@@ -30,7 +30,7 @@ func (t *test) Handler(msg mq.IMessage) error {
 	}
 	log.Println("[test] recvce msg:", data.Content)
 	msg.Ack()
-	panic("panic test")
+	//panic("panic test")
 	//msg.Ack()
 	return nil
 }

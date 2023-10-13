@@ -15,9 +15,9 @@ const (
 
 type Option func(ctx *AppContext)
 
-func RegisterTopicHandler(handler ...ITopicHandler) Option {
+func RegisterTopicHandler(handlers ...ITopicHandler) Option {
 	return func(ctx *AppContext) {
-		ctx.topicHandlers = append(ctx.topicHandlers, handler...)
+		ctx.topicHandlers = append(ctx.topicHandlers, handlers...)
 	}
 }
 
