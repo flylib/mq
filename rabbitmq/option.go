@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Option func(config *option)
+type Option func(o *option)
 
 type option struct {
 	consumerName string
@@ -17,34 +17,34 @@ type option struct {
 }
 
 func UseVhost(vhost string) Option {
-	return func(config *option) {
-		config.Vhost = vhost
+	return func(o *option) {
+		o.Vhost = vhost
 	}
 }
 
 func ConsumerName(name string) Option {
-	return func(config *option) {
-		config.consumerName = name
+	return func(o *option) {
+		o.consumerName = name
 	}
 }
 
 // less than 1s uses the server's interval
 func HeartbeatInterval(duration time.Duration) Option {
-	return func(config *option) {
-		config.Heartbeat = duration
+	return func(o *option) {
+		o.Heartbeat = duration
 	}
 }
 
 // default 10s,reconnection interval
 func ReconnectInterval(duration time.Duration) Option {
-	return func(config *option) {
-		config.reconnectionInterval = duration
+	return func(o *option) {
+		o.reconnectionInterval = duration
 	}
 }
 
 // default 10,0 means no limit,The maximum number of reconnections allowed after disconnection
 func MaxTryReconnectTimes(times uint32) Option {
-	return func(config *option) {
-		config.maxTryReconnectTimes = times
+	return func(o *option) {
+		o.maxTryReconnectTimes = times
 	}
 }

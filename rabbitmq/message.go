@@ -12,6 +12,10 @@ type message struct {
 	ctx    *mq.AppContext
 }
 
+func (m *message) ID() string {
+	return m.origin.MessageId
+}
+
 func (m *message) Ack() error {
 	return m.origin.Ack(false)
 }

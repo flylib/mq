@@ -1,6 +1,7 @@
 package mq
 
 import (
+	"context"
 	"github.com/flylib/goutils/codec/json"
 	"github.com/flylib/goutils/codec/protobuf"
 	"github.com/flylib/goutils/logger/log"
@@ -11,12 +12,14 @@ type AppContext struct {
 	//message codec,default support json and protobuf codec
 	codecs map[string]ICodec
 	ILogger
+	context.Context
 }
 
 func NewContext(options ...Option) *AppContext {
 	ctx := AppContext{
 		codecs:  make(map[string]ICodec),
 		ILogger: log.NewLogger(log.SyncConsole()),
+		Context: context.Background(),
 	}
 	for _, f := range options {
 		f(&ctx)
@@ -24,10 +27,14 @@ func NewContext(options ...Option) *AppContext {
 	return &ctx
 }
 
-func (a *AppContext) RangeTopicHandler(callback func(handler ITopicHandler)) {
+func (a *AppContext) RangeTopicHandler(callback func(handler ITopicHandler) error) error {
 	for _, handler := range a.topicHandlers {
-		callback(handler)
+		err := callback(handler)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 var (

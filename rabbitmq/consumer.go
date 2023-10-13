@@ -45,13 +45,16 @@ func (c *consumer) Working(url string) (err error) {
 	c.reconnecting = sync.Once{}
 
 	//topic channel consume
-	c.ctx.RangeTopicHandler(func(topic mq.ITopicHandler) {
-		errRun := c.consuming(topic)
-		if errRun != nil {
-			err = err
-			return
+	err = c.ctx.RangeTopicHandler(func(topic mq.ITopicHandler) error {
+		err = c.consuming(topic)
+		if err != nil {
+			return err
 		}
+		return nil
 	})
+	if err != nil {
+		return err
+	}
 	if err != nil {
 		return
 	}
@@ -76,7 +79,7 @@ func (c *consumer) Working(url string) (err error) {
 	return err
 }
 
-func (c *consumer) consuming(handler mq.ITopicHandler) (err error) {
+func (c *consumer) consuming(topic mq.ITopicHandler) (err error) {
 	var ch *amqp.Channel
 	ch, err = c.conn.Channel()
 	if err != nil {
@@ -85,7 +88,7 @@ func (c *consumer) consuming(handler mq.ITopicHandler) (err error) {
 
 	var deliveryCh <-chan amqp.Delivery
 	deliveryCh, err = ch.Consume(
-		handler.Topic(),       // queue
+		topic.Name(),          // queue
 		c.option.consumerName, // consumer name
 		false,
 		false,
@@ -103,7 +106,7 @@ func (c *consumer) consuming(handler mq.ITopicHandler) (err error) {
 			if err := recover(); err != nil {
 				c.ctx.Error("panic error:%s\n\n%s", err, string(debug.Stack()))
 				if !c.conn.IsClosed() {
-					c.restartTopicHandlerCh <- handler
+					c.restartTopicHandlerCh <- topic
 				}
 			} else {
 				//Enter reconnection state
@@ -119,9 +122,9 @@ func (c *consumer) consuming(handler mq.ITopicHandler) (err error) {
 		var msg message = message{ctx: c.ctx}
 		for item := range deliveryCh {
 			msg.origin = item
-			err := handler.Handler(&msg)
+			err := topic.Handler(&msg)
 			if err != nil {
-				switch handler.OnErrorAction() {
+				switch topic.OnErrorAction() {
 				case mq.Reject:
 					msg.Reject()
 				case mq.Requeue:

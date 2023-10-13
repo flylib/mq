@@ -10,7 +10,7 @@ type IConsumer interface {
 }
 
 type ITopicHandler interface {
-	Topic() string
+	Name() string
 	OnErrorAction() OnErrorAction
 	Handler(IMessage) error
 }
@@ -27,6 +27,8 @@ type IMessage interface {
 	ContentType() string
 	// Body raw data
 	Body() []byte
+	//Message ID
+	ID() string
 }
 
 // message Codec
