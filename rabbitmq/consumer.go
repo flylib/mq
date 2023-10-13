@@ -109,6 +109,7 @@ func (c *consumer) consuming(handler mq.ITopicHandler) (err error) {
 				//Enter reconnection state
 				if c.conn.IsClosed() {
 					c.reconnecting.Do(func() {
+						c.ctx.Error("connection is closed!!!")
 						close(c.restartTopicHandlerCh)
 					})
 				}
