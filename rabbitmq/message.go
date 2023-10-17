@@ -1,8 +1,6 @@
 package rabbitmq
 
 import (
-	"errors"
-	"fmt"
 	"github.com/flylib/mq"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -29,11 +27,7 @@ func (m *message) Reject() error {
 }
 
 func (m *message) Unmarshal(v any) error {
-	codec, ok := m.ctx.GetCodecByMIMEType(m.origin.ContentType)
-	if !ok {
-		return errors.New(fmt.Sprintf("Unsupported parsing '%s' type", m.origin.ContentType))
-	}
-	return codec.Unmarshal(m.origin.Body, v)
+	return m.ctx.Unmarshal(m.origin.Body, v)
 }
 
 func (m *message) ContentType() string {

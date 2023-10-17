@@ -1,18 +1,17 @@
 package mq
 
-type OnErrorAction int8
-
-type IProducer struct {
+type IProducer interface {
+	Push(v any) error
 }
 
 type IConsumer interface {
-	Working(url string) error
+	WorkingOn(url string) error
 }
 
 type ITopicHandler interface {
 	Name() string
-	OnErrorAction() OnErrorAction
-	Handler(IMessage) error
+	Handler(IMessage)
+	OnPanic(IMessage, error)
 }
 
 type IMessage interface {
@@ -33,7 +32,6 @@ type IMessage interface {
 
 // message Codec
 type ICodec interface {
-	MIMEType() string
 	Marshal(v any) (data []byte, err error)
 	Unmarshal(data []byte, v any) error
 }

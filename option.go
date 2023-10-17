@@ -1,30 +1,28 @@
 package mq
 
 const (
-	NotProcessed OnErrorAction = iota
-	Requeue
-	Reject
-)
-
-const (
-	MIMEType_Binary   = "application/binary"
-	MIMEType_Xml      = "application/xml"
-	MIMEType_Json     = "application/json"
-	MIMEType_protobuf = "application/x-protobuf"
+	MIME_Type_Binary   = "application/binary"
+	MIME_Type_Xml      = "application/xml"
+	MIME_Type_Json     = "application/json"
+	MIME_Type_Protobuf = "application/x-protobuf"
 )
 
 type Option func(ctx *AppContext)
 
-func RegisterTopicHandler(handlers ...ITopicHandler) Option {
+func WithLogger(logger ILogger) Option {
 	return func(ctx *AppContext) {
-		ctx.topicHandlers = append(ctx.topicHandlers, handlers...)
+		ctx.ILogger = logger
 	}
 }
 
-func RegisterCodec(codec ...ICodec) Option {
+func SetDefaultCodec(codec ICodec) Option {
 	return func(ctx *AppContext) {
-		for _, c := range codec {
-			ctx.codecs[c.MIMEType()] = c
-		}
+		ctx.ICodec = codec
+	}
+}
+
+func RegisterTopicHandler(codec ...ITopicHandler) Option {
+	return func(ctx *AppContext) {
+		ctx.RegisterTopicHandler(codec...)
 	}
 }

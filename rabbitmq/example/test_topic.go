@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/flylib/mq"
 	"log"
 	"time"
@@ -8,6 +9,7 @@ import (
 
 type test struct {
 }
+
 type Msg struct {
 	Content string `json:"content"`
 }
@@ -16,21 +18,20 @@ func (t *test) Name() string {
 	return "test"
 }
 
-func (t *test) OnErrorAction() mq.OnErrorAction {
-	return mq.NotProcessed
+func (t *test) OnPanic(msg mq.IMessage, err error) {
+	fmt.Println(err.Error())
 }
 
-func (t *test) Handler(msg mq.IMessage) error {
+func (t *test) Handler(msg mq.IMessage) {
 	time.Sleep(time.Second * 3)
 	var data Msg
 	err := msg.Unmarshal(&data)
 	if err != nil {
 		log.Printf(err.Error())
-		return err
+		return
 	}
-	log.Println("[test] recvce msg:", data.Content)
+	log.Println("[Test] recvce msg:", data.Content)
 	msg.Ack()
-	//panic("panic test")
-	//msg.Ack()
-	return nil
+	panic("panic test")
+	return
 }

@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"fmt"
 	"github.com/flylib/mq"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"runtime/debug"
@@ -32,7 +33,7 @@ func NewConsumer(ctx *mq.AppContext, options ...Option) mq.IConsumer {
 	return &c
 }
 
-func (c *consumer) Working(url string) (err error) {
+func (c *consumer) WorkingOn(url string) (err error) {
 	c.conn, err = amqp.DialConfig(url, c.option.Config)
 	if err != nil {
 		return
@@ -58,6 +59,7 @@ func (c *consumer) Working(url string) (err error) {
 	if err != nil {
 		return
 	}
+
 	for topic := range c.restartTopicHandlerCh {
 		c.consuming(topic)
 	}
@@ -67,7 +69,7 @@ func (c *consumer) Working(url string) (err error) {
 		time.Sleep(c.option.reconnectionInterval)
 		c.reconnectTimes++
 		c.ctx.Infof("Try to reconnect %d times", c.reconnectTimes)
-		err = c.Working(url)
+		err = c.WorkingOn(url)
 		if err != nil {
 			c.ctx.Error("reconnect err:", err)
 		}
@@ -100,11 +102,13 @@ func (c *consumer) consuming(topic mq.ITopicHandler) (err error) {
 		return
 	}
 	go func() {
+		var msg message = message{ctx: c.ctx}
 		// panic handling
 		defer func() {
 			ch.Close()
 			if err := recover(); err != nil {
-				c.ctx.Error("panic error:%s\n\n%s", err, string(debug.Stack()))
+				c.ctx.Errorf("panic error:%v >>>>>\t\n%s", err, string(debug.Stack()))
+				topic.OnPanic(&msg, fmt.Errorf("%v", err))
 				if !c.conn.IsClosed() {
 					c.restartTopicHandlerCh <- topic
 				}
@@ -119,18 +123,9 @@ func (c *consumer) consuming(topic mq.ITopicHandler) (err error) {
 			}
 		}()
 
-		var msg message = message{ctx: c.ctx}
 		for item := range deliveryCh {
 			msg.origin = item
-			err := topic.Handler(&msg)
-			if err != nil {
-				switch topic.OnErrorAction() {
-				case mq.Reject:
-					msg.Reject()
-				case mq.Requeue:
-					msg.Requeue()
-				}
-			}
+			topic.Handler(&msg)
 		}
 	}()
 

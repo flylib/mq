@@ -3,28 +3,30 @@ package mq
 import (
 	"context"
 	"github.com/flylib/goutils/codec/json"
-	"github.com/flylib/goutils/codec/protobuf"
 	"github.com/flylib/goutils/logger/log"
 )
 
 type AppContext struct {
-	topicHandlers []ITopicHandler
-	//message codec,default support json and protobuf codec
-	codecs map[string]ICodec
-	ILogger
 	context.Context
+	topicHandlers []ITopicHandler
+	ILogger       //default logger
+	ICodec        //default codec
 }
 
 func NewContext(options ...Option) *AppContext {
 	ctx := AppContext{
-		codecs:  make(map[string]ICodec),
-		ILogger: log.NewLogger(log.SyncConsole()),
 		Context: context.Background(),
+		ILogger: log.NewLogger(log.SyncConsole()),
+		ICodec:  new(json.Codec),
 	}
 	for _, f := range options {
 		f(&ctx)
 	}
 	return &ctx
+}
+
+func (a *AppContext) RegisterTopicHandler(handlers ...ITopicHandler) {
+	a.topicHandlers = append(a.topicHandlers, handlers...)
 }
 
 func (a *AppContext) RangeTopicHandler(callback func(handler ITopicHandler) error) error {
@@ -35,21 +37,4 @@ func (a *AppContext) RangeTopicHandler(callback func(handler ITopicHandler) erro
 		}
 	}
 	return nil
-}
-
-var (
-	jsonCodec     = new(json.Codec)
-	protobufCodec = new(protobuf.Codec)
-)
-
-func (a *AppContext) GetCodecByMIMEType(mimeType string) (ICodec, bool) {
-	switch mimeType {
-	case MIMEType_Json:
-		return jsonCodec, true
-	case MIMEType_protobuf:
-		return protobufCodec, true
-	default:
-		codec, ok := a.codecs[mimeType]
-		return codec, ok
-	}
 }

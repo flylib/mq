@@ -32,7 +32,7 @@ func NewConsumer(ctx *mq.AppContext, options ...Option) mq.IConsumer {
 	return &c
 }
 
-func (c *consumer) Working(url string) (err error) {
+func (c *consumer) WorkingOn(url string) (err error) {
 	c.rdb, err = connectRedis(url, c.option)
 	if err != nil {
 		return err
