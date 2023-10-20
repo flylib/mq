@@ -41,7 +41,7 @@ func WithReconnectInterval(duration time.Duration) Option {
 }
 
 // default 10,0 means no limit,The maximum number of reconnections allowed after disconnection
-func MaxTryReconnectTimes(times uint32) Option {
+func WithMaxTryReconnectTimes(times uint32) Option {
 	return func(o *option) {
 		o.maxTryReconnectTimes = times
 	}
