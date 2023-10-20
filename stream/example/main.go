@@ -7,7 +7,7 @@ import (
 
 func main() {
 	ctx := mq.NewContext(
-		mq.RegisterTopicHandler(new(test)),
+		mq.WithRegisterTopicHandler(new(test)),
 	)
 	err := stream.NewConsumer(ctx).WorkingOn("192.168.119.128:6379")
 	if err != nil {

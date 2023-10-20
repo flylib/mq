@@ -8,35 +8,33 @@ import (
 type Option func(o *option)
 
 type option struct {
-	consumerName string
-
+	consumerName         string
 	maxTryReconnectTimes uint32
-
 	reconnectionInterval time.Duration
 	amqp.Config
 }
 
-func UseVhost(vhost string) Option {
+func WithVhost(vhost string) Option {
 	return func(o *option) {
 		o.Vhost = vhost
 	}
 }
 
-func ConsumerName(name string) Option {
+func WithConsumerName(name string) Option {
 	return func(o *option) {
 		o.consumerName = name
 	}
 }
 
 // less than 1s uses the server's interval
-func HeartbeatInterval(duration time.Duration) Option {
+func WithHeartbeatInterval(duration time.Duration) Option {
 	return func(o *option) {
 		o.Heartbeat = duration
 	}
 }
 
 // default 10s,reconnection interval
-func ReconnectInterval(duration time.Duration) Option {
+func WithReconnectInterval(duration time.Duration) Option {
 	return func(o *option) {
 		o.reconnectionInterval = duration
 	}

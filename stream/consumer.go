@@ -127,15 +127,7 @@ func (c *consumer) consuming(stream mq.ITopicHandler) (err error) {
 			if len(streams) > 0 {
 				for _, item := range streams[0].Messages {
 					msg.origin = item
-					err = stream.Handler(&msg)
-					if err != nil {
-						switch stream.OnErrorAction() {
-						case mq.Reject:
-							msg.Reject()
-						case mq.Requeue:
-							msg.Requeue()
-						}
-					}
+					stream.Handler(&msg)
 				}
 			}
 		}

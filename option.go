@@ -15,13 +15,13 @@ func WithLogger(logger ILogger) Option {
 	}
 }
 
-func SetDefaultCodec(codec ICodec) Option {
+func WithCodec(codec ICodec) Option {
 	return func(ctx *AppContext) {
 		ctx.ICodec = codec
 	}
 }
 
-func RegisterTopicHandler(codec ...ITopicHandler) Option {
+func WithRegisterTopicHandler(codec ...ITopicHandler) Option {
 	return func(ctx *AppContext) {
 		ctx.RegisterTopicHandler(codec...)
 	}
