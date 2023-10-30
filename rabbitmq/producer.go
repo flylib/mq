@@ -32,6 +32,24 @@ type Producer struct {
 	*Broker
 }
 
+func (b *Broker) DeclareQueue(name string) error {
+	ch, err := b.conn.Channel()
+	if err != nil {
+		return err
+	}
+	defer ch.Close()
+	// declare a queue to hold message
+	_, err = ch.QueueDeclare(
+		name,  // 队列名
+		true,  // 是否持久化
+		false, // 是否自动删除
+		false, // 是否排他
+		false, // 是否阻塞
+		nil,   // 其他参数
+	)
+	return err
+}
+
 func (b *Broker) NewProducer(exchange string) (mq.IProducer, error) {
 	channel, err := b.conn.Channel()
 	if err != nil {

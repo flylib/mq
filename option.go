@@ -1,10 +1,13 @@
 package mq
 
-import "github.com/flylib/interface/codec"
+import (
+	"github.com/flylib/interface/codec"
+	ilog "github.com/flylib/interface/log"
+)
 
 type Option func(ctx *AppContext)
 
-func WithLogger(logger ILogger) Option {
+func WithLogger(logger ilog.ILogger) Option {
 	return func(ctx *AppContext) {
 		ctx.ILogger = logger
 	}

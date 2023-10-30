@@ -18,6 +18,11 @@ func TestProducer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	err = broker.DeclareQueue("test")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	producer, err := broker.NewProducer("")
 	if err != nil {
 		t.Fatal(err)

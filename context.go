@@ -5,13 +5,14 @@ import (
 	"github.com/flylib/goutils/codec/json"
 	"github.com/flylib/goutils/logger/log"
 	"github.com/flylib/interface/codec"
+	ilog "github.com/flylib/interface/log"
 )
 
 type AppContext struct {
 	context.Context
-	topicHandlers []IMessageHandler
-	ILogger       //default logger
+	ilog.ILogger  //default logger
 	codec.ICodec  //default codec
+	topicHandlers []IMessageHandler
 }
 
 func NewContext(options ...Option) *AppContext {
