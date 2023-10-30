@@ -13,7 +13,7 @@ type consumer struct {
 	ctx                   *mq.AppContext
 	option                option
 	conn                  *amqp.Connection
-	restartTopicHandlerCh chan mq.ITopicHandler
+	restartTopicHandlerCh chan mq.IMessageHandler
 	reconnecting          sync.Once
 	reconnectTimes        uint32
 	url                   string
@@ -33,7 +33,7 @@ func NewConsumer(ctx *mq.AppContext, options ...Option) mq.IConsumer {
 	return &c
 }
 
-func (c *consumer) WorkingOn(url string) (err error) {
+func (c *consumer) Subscribe(url string) (err error) {
 	c.conn, err = amqp.DialConfig(url, c.option.Config)
 	if err != nil {
 		return
@@ -42,11 +42,11 @@ func (c *consumer) WorkingOn(url string) (err error) {
 	//reset
 	c.url = url
 	c.reconnectTimes = 0
-	c.restartTopicHandlerCh = make(chan mq.ITopicHandler)
+	c.restartTopicHandlerCh = make(chan mq.IMessageHandler)
 	c.reconnecting = sync.Once{}
 
 	//topic channel consume
-	err = c.ctx.RangeTopicHandler(func(topic mq.ITopicHandler) error {
+	err = c.ctx.RangeTopicHandler(func(topic mq.IMessageHandler) error {
 		err = c.consuming(topic)
 		if err != nil {
 			return err
@@ -69,7 +69,7 @@ func (c *consumer) WorkingOn(url string) (err error) {
 		time.Sleep(c.option.reconnectionInterval)
 		c.reconnectTimes++
 		c.ctx.Infof("Try to reconnect %d times", c.reconnectTimes)
-		err = c.WorkingOn(url)
+		err = c.Subscribe(url)
 		if err != nil {
 			c.ctx.Error("reconnect err:", err)
 		}
@@ -81,7 +81,7 @@ func (c *consumer) WorkingOn(url string) (err error) {
 	return err
 }
 
-func (c *consumer) consuming(topic mq.ITopicHandler) (err error) {
+func (c *consumer) consuming(topic mq.IMessageHandler) (err error) {
 	var ch *amqp.Channel
 	ch, err = c.conn.Channel()
 	if err != nil {
@@ -90,7 +90,7 @@ func (c *consumer) consuming(topic mq.ITopicHandler) (err error) {
 
 	var deliveryCh <-chan amqp.Delivery
 	deliveryCh, err = ch.Consume(
-		topic.Name(),          // queue
+		topic.Topic(),         // queue
 		c.option.consumerName, // consumer name
 		false,
 		false,
@@ -102,7 +102,7 @@ func (c *consumer) consuming(topic mq.ITopicHandler) (err error) {
 		return
 	}
 	go func() {
-		var msg message = message{ctx: c.ctx}
+		var msg = message{ctx: c.ctx}
 		// panic handling
 		defer func() {
 			ch.Close()
@@ -125,7 +125,7 @@ func (c *consumer) consuming(topic mq.ITopicHandler) (err error) {
 
 		for item := range deliveryCh {
 			msg.origin = item
-			topic.Handler(&msg)
+			topic.Process(&msg)
 		}
 	}()
 

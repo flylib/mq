@@ -11,13 +11,13 @@ type consumer struct {
 	rdb                   *redis.Client
 	option                option
 	readArg               redis.XReadGroupArgs
-	restartTopicHandlerCh chan mq.ITopicHandler
+	restartTopicHandlerCh chan mq.IMessageHandler
 }
 
 func NewConsumer(ctx *mq.AppContext, options ...Option) mq.IConsumer {
 	var c = consumer{
 		ctx:                   ctx,
-		restartTopicHandlerCh: make(chan mq.ITopicHandler),
+		restartTopicHandlerCh: make(chan mq.IMessageHandler),
 		option: option{
 			reconnectionInterval: time.Second * 15,
 			maxTryReconnectTimes: 10,
@@ -32,13 +32,13 @@ func NewConsumer(ctx *mq.AppContext, options ...Option) mq.IConsumer {
 	return &c
 }
 
-func (c *consumer) WorkingOn(url string) (err error) {
+func (c *consumer) Subscribe(url string) (err error) {
 	c.rdb, err = connectRedis(url, c.option)
 	if err != nil {
 		return err
 	}
 
-	err = c.ctx.RangeTopicHandler(func(stream mq.ITopicHandler) error {
+	err = c.ctx.RangeTopicHandler(func(stream mq.IMessageHandler) error {
 		//err = c.createConsumeGroup(stream)
 		//if err != nil {
 		//	return err
@@ -61,9 +61,9 @@ func (c *consumer) WorkingOn(url string) (err error) {
 	return err
 }
 
-func (c *consumer) createConsumeGroup(stream mq.ITopicHandler) error {
+func (c *consumer) createConsumeGroup(stream mq.IMessageHandler) error {
 	//get groups info
-	groups, err := c.rdb.XInfoGroups(c.ctx, stream.Name()).Result()
+	groups, err := c.rdb.XInfoGroups(c.ctx, stream.Topic()).Result()
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (c *consumer) createConsumeGroup(stream mq.ITopicHandler) error {
 		}
 	}
 	if !isHaveGroup {
-		_, err = c.rdb.XGroupCreate(c.ctx, stream.Name(), c.option.group, c.option.readMsgIndex).Result()
+		_, err = c.rdb.XGroupCreate(c.ctx, stream.Topic(), c.option.group, c.option.readMsgIndex).Result()
 		if err != nil {
 			return err
 		}
@@ -83,7 +83,7 @@ func (c *consumer) createConsumeGroup(stream mq.ITopicHandler) error {
 
 	//get consumers info
 	var isHaveConsumer bool
-	consumers, err := c.rdb.XInfoConsumers(c.ctx, stream.Name(), c.option.group).Result()
+	consumers, err := c.rdb.XInfoConsumers(c.ctx, stream.Topic(), c.option.group).Result()
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (c *consumer) createConsumeGroup(stream mq.ITopicHandler) error {
 		}
 	}
 	if !isHaveConsumer {
-		_, err = c.rdb.XGroupCreateConsumer(c.ctx, stream.Name(), c.option.group, c.option.consumer).Result()
+		_, err = c.rdb.XGroupCreateConsumer(c.ctx, stream.Topic(), c.option.group, c.option.consumer).Result()
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func (c *consumer) createConsumeGroup(stream mq.ITopicHandler) error {
 	return nil
 }
 
-func (c *consumer) consuming(stream mq.ITopicHandler) (err error) {
+func (c *consumer) consuming(stream mq.IMessageHandler) (err error) {
 	err = c.createConsumeGroup(stream)
 	if err != nil {
 		return err
@@ -111,23 +111,23 @@ func (c *consumer) consuming(stream mq.ITopicHandler) (err error) {
 	arg := redis.XReadGroupArgs{
 		Group:    c.option.group,
 		Consumer: c.option.consumer,
-		Streams:  []string{stream.Name(), c.option.readMsgIndex},
+		Streams:  []string{stream.Topic(), c.option.readMsgIndex},
 		Count:    1,
 		Block:    0,
 	}
 	go func() {
-		var msg message = message{c: c, stream: stream.Name()}
+		var msg message = message{c: c, stream: stream.Topic()}
 		for {
 			var streams []redis.XStream
 			streams, err = c.rdb.XReadGroup(c.ctx, &arg).Result()
 			if err != nil {
-				c.ctx.Errorf("xread [%s] error:%s", stream.Name(), err.Error())
+				c.ctx.Errorf("xread [%s] error:%s", stream.Topic(), err.Error())
 				return
 			}
 			if len(streams) > 0 {
 				for _, item := range streams[0].Messages {
 					msg.origin = item
-					stream.Handler(&msg)
+					stream.Process(&msg)
 				}
 			}
 		}

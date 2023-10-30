@@ -17,11 +17,11 @@ type Msg struct {
 	Content string `json:"content"`
 }
 
-func (t *test) Name() string {
+func (t *test) Topic() string {
 	return "test"
 }
 
-func (t *test) Handler(msg mq.IMessage) {
+func (t *test) Process(msg mq.IMessage) {
 	time.Sleep(time.Second * 3)
 	var data Msg
 	err := msg.Unmarshal(&data)

@@ -4,13 +4,14 @@ import (
 	"context"
 	"github.com/flylib/goutils/codec/json"
 	"github.com/flylib/goutils/logger/log"
+	"github.com/flylib/interface/codec"
 )
 
 type AppContext struct {
 	context.Context
-	topicHandlers []ITopicHandler
+	topicHandlers []IMessageHandler
 	ILogger       //default logger
-	ICodec        //default codec
+	codec.ICodec  //default codec
 }
 
 func NewContext(options ...Option) *AppContext {
@@ -25,11 +26,11 @@ func NewContext(options ...Option) *AppContext {
 	return &ctx
 }
 
-func (a *AppContext) RegisterTopicHandler(handlers ...ITopicHandler) {
+func (a *AppContext) RegisterTopicHandler(handlers ...IMessageHandler) {
 	a.topicHandlers = append(a.topicHandlers, handlers...)
 }
 
-func (a *AppContext) RangeTopicHandler(callback func(handler ITopicHandler) error) error {
+func (a *AppContext) RangeTopicHandler(callback func(handler IMessageHandler) error) error {
 	for _, handler := range a.topicHandlers {
 		err := callback(handler)
 		if err != nil {

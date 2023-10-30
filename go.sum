@@ -5,6 +5,14 @@ github.com/flylib/goutils/codec/json v0.0.0-20231012070911-2cf6c2bcb71d h1:D2jpM
 github.com/flylib/goutils/codec/json v0.0.0-20231012070911-2cf6c2bcb71d/go.mod h1:Wj1xXeavXwTDMZVrzQ386Cieqk2fQLa08hb5SEqacq0=
 github.com/flylib/goutils/logger/log v0.0.0-20231012070911-2cf6c2bcb71d h1:s2qJLW+jjZ3phCvVv1OWV1PsUq7HuLoqBwaeFoy7P3Y=
 github.com/flylib/goutils/logger/log v0.0.0-20231012070911-2cf6c2bcb71d/go.mod h1:SO31BOi9uMnhv5C84rUcwpi7QM466A93C6SMU+8VWG0=
+github.com/flylib/interface v0.0.0-20231026024429-34fca767eabb h1:J+D1YdyeD05JoJytS4iTSVDSyjP7td49DjxohgdTzRg=
+github.com/flylib/interface v0.0.0-20231026024429-34fca767eabb/go.mod h1:NgCt9XMId9KtHj9LeXkpE9ZEuW/5H69KixYv8aq9O64=
+github.com/flylib/interface v0.0.0-20231030065923-461a507ce937 h1:t5DgtwRH/ipTjAAQ2llhx+Hf4TiqnHkKFi2wwPSYPSk=
+github.com/flylib/interface v0.0.0-20231030065923-461a507ce937/go.mod h1:NgCt9XMId9KtHj9LeXkpE9ZEuW/5H69KixYv8aq9O64=
+github.com/flylib/interface v0.0.0-20231030070259-29c7717ec112 h1:DZBkc1aHPA80dxur42F6cil9R/afy3HI+CgwOojP2/g=
+github.com/flylib/interface v0.0.0-20231030070259-29c7717ec112/go.mod h1:NgCt9XMId9KtHj9LeXkpE9ZEuW/5H69KixYv8aq9O64=
+github.com/flylib/interface v0.0.0-20231030075616-76c4e9b38c2a h1:H1vnrMBvr/ptZxDC9stuxj8Y6R/JjLJcC+mH5wEAaRs=
+github.com/flylib/interface v0.0.0-20231030075616-76c4e9b38c2a/go.mod h1:NgCt9XMId9KtHj9LeXkpE9ZEuW/5H69KixYv8aq9O64=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=

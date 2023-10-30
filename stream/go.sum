@@ -13,6 +13,11 @@ github.com/flylib/goutils/codec/protobuf v0.0.0-20231012070911-2cf6c2bcb71d h1:A
 github.com/flylib/goutils/codec/protobuf v0.0.0-20231012070911-2cf6c2bcb71d/go.mod h1:B6tiERCFnu7SmH/+WaxgH6zyHHVoJxRYIqmUs5LqqkM=
 github.com/flylib/goutils/logger/log v0.0.0-20231012070911-2cf6c2bcb71d h1:s2qJLW+jjZ3phCvVv1OWV1PsUq7HuLoqBwaeFoy7P3Y=
 github.com/flylib/goutils/logger/log v0.0.0-20231012070911-2cf6c2bcb71d/go.mod h1:SO31BOi9uMnhv5C84rUcwpi7QM466A93C6SMU+8VWG0=
+github.com/flylib/interface v0.0.0-20231026024429-34fca767eabb h1:J+D1YdyeD05JoJytS4iTSVDSyjP7td49DjxohgdTzRg=
+github.com/flylib/interface v0.0.0-20231026024429-34fca767eabb/go.mod h1:NgCt9XMId9KtHj9LeXkpE9ZEuW/5H69KixYv8aq9O64=
+github.com/flylib/interface v0.0.0-20231030065923-461a507ce937/go.mod h1:NgCt9XMId9KtHj9LeXkpE9ZEuW/5H69KixYv8aq9O64=
+github.com/flylib/interface v0.0.0-20231030070259-29c7717ec112/go.mod h1:NgCt9XMId9KtHj9LeXkpE9ZEuW/5H69KixYv8aq9O64=
+github.com/flylib/interface v0.0.0-20231030075616-76c4e9b38c2a/go.mod h1:NgCt9XMId9KtHj9LeXkpE9ZEuW/5H69KixYv8aq9O64=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
 github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69NZV8Q=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
