@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/flylib/goutils/codec/json v0.0.0-20231012070911-2cf6c2bcb71d
 	github.com/flylib/interface v0.0.0-20231030075616-76c4e9b38c2a
-	github.com/flylib/pkg/log/builtinlog v0.0.0-20231031020815-c8a2ce9c3f8a
+	github.com/flylib/pkg/log/builtinlog v0.0.0-20231031025337-eee45d016863
 )
 
 require (

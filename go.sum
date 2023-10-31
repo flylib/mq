@@ -7,6 +7,8 @@ github.com/flylib/interface v0.0.0-20231030075616-76c4e9b38c2a h1:H1vnrMBvr/ptZx
 github.com/flylib/interface v0.0.0-20231030075616-76c4e9b38c2a/go.mod h1:NgCt9XMId9KtHj9LeXkpE9ZEuW/5H69KixYv8aq9O64=
 github.com/flylib/pkg/log/builtinlog v0.0.0-20231031020815-c8a2ce9c3f8a h1:PidD0SHitKyn64H8OR+fB9UDFGgHx3ziM3rL+g5adMA=
 github.com/flylib/pkg/log/builtinlog v0.0.0-20231031020815-c8a2ce9c3f8a/go.mod h1:TPoBj8wpa4nvOTvye+J0WmiZeSYKHz/leoH6VNck7g0=
+github.com/flylib/pkg/log/builtinlog v0.0.0-20231031025337-eee45d016863 h1:AeNX7SYNN1pSUe7QN8dBRX4lselalxoFZoIZWo7rS5U=
+github.com/flylib/pkg/log/builtinlog v0.0.0-20231031025337-eee45d016863/go.mod h1:Fp6RiOP7a+YiJYWYrngPkILJ8+RvUiMNtazOJMduhEw=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=

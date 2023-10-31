@@ -8,6 +8,13 @@ type IConsumer interface {
 	Subscribe(url string) error
 }
 
+type IBroker interface {
+	Push(route string, v any) error
+	Subscribe(topic string, handler MessageHandler) error
+}
+
+type MessageHandler func(IMessage)
+
 type IMessageHandler interface {
 	Topic() string
 	Process(IMessage)
