@@ -43,6 +43,8 @@ func (c *Channel) Publish(topic string, v any) error {
 }
 
 func (c *Channel) Subscribe(topic string, handler mq.MessageHandler) error {
+	c.topic = topic
+	c.handler = handler
 	var deliveryCh <-chan amqp.Delivery
 	deliveryCh, err := c.ch.Consume(
 		topic,          // queue
@@ -57,34 +59,68 @@ func (c *Channel) Subscribe(topic string, handler mq.MessageHandler) error {
 		return err
 	}
 
-	go func() {
-		var msg = message{Broker: c.Broker}
+	go c.deliveryLoop(deliveryCh, handler)
 
-		// panic handling
-		defer func() {
-			c.ch.Close()
-			if err := recover(); err != nil {
-				c.ILogger.Errorf("panic error:%v >>>>>\t\n%s", err, string(debug.Stack()))
-				if !c.conn.IsClosed() {
-					c.restartTopicHandlerCh <- c
-				}
-			} else {
-				//Enter reconnection state
-				if c.conn.IsClosed() {
-					c.reconnecting.Do(func() {
-						c.ILogger.Error("connection is closed!!!")
-						close(c.restartTopicHandlerCh)
-					})
-				}
+	//go func() {
+	//	var msg = message{Broker: c.Broker}
+	//
+	//	// panic handling
+	//	defer func() {
+	//
+	//		//c.ch.Close()
+	//		if err := recover(); err != nil {
+	//			c.ILogger.Errorf("panic error:%v >>>>>\t\n%s", err, string(debug.Stack()))
+	//			if !c.ch.IsClosed() {
+	//				c.restartTopicHandlerCh <- c
+	//				return
+	//			}
+	//		}
+	//
+	//		//Enter reconnection state
+	//		if c.conn.IsClosed() {
+	//			c.reconnecting.Do(func() {
+	//				c.ILogger.Error("connection is closed!!!")
+	//				close(c.restartTopicHandlerCh)
+	//			})
+	//		}
+	//	}()
+	//
+	//	for item := range deliveryCh {
+	//		msg.origin = item
+	//		handler(&msg)
+	//	}
+	//}()
+	return nil
+}
+
+func (c *Channel) deliveryLoop(deliveryCh <-chan amqp.Delivery, handler mq.MessageHandler) {
+	var msg = message{Broker: c.Broker}
+
+	// panic handling
+	defer func() {
+
+		//c.ch.Close()
+		if err := recover(); err != nil {
+			c.ILogger.Errorf("panic error:%v >>>>>\t\n%s", err, string(debug.Stack()))
+			if !c.ch.IsClosed() {
+				c.restartTopicHandlerCh <- c
+				return
 			}
-		}()
+		}
 
-		for item := range deliveryCh {
-			msg.origin = item
-			handler(&msg)
+		//Enter reconnection state
+		if c.conn.IsClosed() {
+			c.reconnecting.Do(func() {
+				c.ILogger.Error("connection is closed!!!")
+				close(c.restartTopicHandlerCh)
+			})
 		}
 	}()
-	return nil
+
+	for item := range deliveryCh {
+		msg.origin = item
+		handler(&msg)
+	}
 }
 
 func (c *Channel) DeclareQueue(queue string) error {

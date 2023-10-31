@@ -68,12 +68,17 @@ func (b *Broker) Connect() (err error) {
 
 	go func() {
 		for item := range b.restartTopicHandlerCh {
-			item.Subscribe(item.topic, item.handler)
+			if !b.conn.IsClosed() {
+				item.ch.Close()
+				item.ch, _ = b.conn.Channel()
+				item.Subscribe(item.topic, item.handler)
+			}
 		}
 	}()
 
 	go func() {
 		for range b.reconnectCh {
+
 			for {
 				err = b.reconnect()
 				if err != nil {
@@ -83,6 +88,7 @@ func (b *Broker) Connect() (err error) {
 				}
 				break
 			}
+			b.reconnecting = sync.Once{}
 		}
 	}()
 
