@@ -3,9 +3,9 @@ package mq
 import (
 	"context"
 	"github.com/flylib/goutils/codec/json"
-	"github.com/flylib/goutils/logger/log"
 	"github.com/flylib/interface/codec"
 	ilog "github.com/flylib/interface/log"
+	"github.com/flylib/pkg/log/builtinlog"
 )
 
 type AppContext struct {
@@ -18,7 +18,7 @@ type AppContext struct {
 func NewContext(options ...Option) *AppContext {
 	ctx := AppContext{
 		Context: context.Background(),
-		ILogger: log.NewLogger(log.SyncConsole()),
+		ILogger: builtinlog.NewLogger(builtinlog.WithSyncConsole()),
 		ICodec:  new(json.Codec),
 	}
 	for _, f := range options {

@@ -72,7 +72,7 @@ func (t *test) Process(msg mq.IMessage) {
 		return
 	}
 	log.Println("[Test] recvce msg:", data.Content)
-	msg.Ack()
+	//msg.Ack()
 	//panic("panic test")
 	return
 }
