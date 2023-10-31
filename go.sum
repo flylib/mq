@@ -3,8 +3,6 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/flylib/goutils/codec/json v0.0.0-20231012070911-2cf6c2bcb71d h1:D2jpMW7LlY2/60ORJ177+m02RR4cbrCW53d7pHkF0s0=
 github.com/flylib/goutils/codec/json v0.0.0-20231012070911-2cf6c2bcb71d/go.mod h1:Wj1xXeavXwTDMZVrzQ386Cieqk2fQLa08hb5SEqacq0=
-github.com/flylib/goutils/logger/log v0.0.0-20231012070911-2cf6c2bcb71d h1:s2qJLW+jjZ3phCvVv1OWV1PsUq7HuLoqBwaeFoy7P3Y=
-github.com/flylib/goutils/logger/log v0.0.0-20231012070911-2cf6c2bcb71d/go.mod h1:SO31BOi9uMnhv5C84rUcwpi7QM466A93C6SMU+8VWG0=
 github.com/flylib/interface v0.0.0-20231030075616-76c4e9b38c2a h1:H1vnrMBvr/ptZxDC9stuxj8Y6R/JjLJcC+mH5wEAaRs=
 github.com/flylib/interface v0.0.0-20231030075616-76c4e9b38c2a/go.mod h1:NgCt9XMId9KtHj9LeXkpE9ZEuW/5H69KixYv8aq9O64=
 github.com/flylib/pkg/log/builtinlog v0.0.0-20231031020815-c8a2ce9c3f8a h1:PidD0SHitKyn64H8OR+fB9UDFGgHx3ziM3rL+g5adMA=
