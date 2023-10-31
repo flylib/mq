@@ -1,13 +1,12 @@
 package rabbitmq
 
 import (
-	"github.com/flylib/mq"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type message struct {
+	*Broker
 	origin amqp.Delivery
-	ctx    *mq.AppContext
 }
 
 func (m *message) ID() string {
@@ -27,7 +26,7 @@ func (m *message) Reject() error {
 }
 
 func (m *message) Unmarshal(v any) error {
-	return m.ctx.Unmarshal(m.origin.Body, v)
+	return m.ICodec.Unmarshal(m.origin.Body, v)
 }
 
 func (m *message) ContentType() string {

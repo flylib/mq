@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/flylib/mq"
+	"github.com/flylib/interface/mq"
 	"github.com/flylib/mq/stream"
 )
 
