@@ -33,7 +33,6 @@ type Broker struct {
 
 func NewBroker(options ...Option) mq.IBroker {
 	b := Broker{
-		url:                  "amqp://admin:admin@localhost:5672",
 		reconnectCh:          make(chan bool),
 		reconnectionInterval: time.Second * 15,
 	}
