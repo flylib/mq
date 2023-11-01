@@ -1,2 +1,2 @@
-# mq-consumer
-Compatible with any message queue
+# Architecture
+![architecture](./architecture.png)
