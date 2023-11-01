@@ -2,18 +2,29 @@ package rabbitmq
 
 import (
 	"context"
+	"fmt"
 	"github.com/flylib/interface/mq"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"runtime/debug"
+	"sync"
 )
 
-// 一个通道代表着一个任务
+// channel represents a task
 type Channel struct {
-	*Broker
+	ctx      *Broker
 	ch       *amqp.Channel
 	exchange string
-	topic    string
-	handler  mq.MessageHandler
+	sync.Map
+	sync.Mutex
+	deliveries []DeliveryInfo
+}
+
+type DeliveryInfo struct {
+	isClosed   bool
+	consumerId string
+	topic      string
+	handler    mq.MessageHandler
+	queue      <-chan amqp.Delivery
 }
 
 func (c *Channel) Close() error {
@@ -24,31 +35,38 @@ func (c *Channel) Close() error {
 }
 
 func (c *Channel) Publish(topic string, v any) error {
-	body, err := c.ICodec.Marshal(v)
+	body, err := c.ctx.ICodec.Marshal(v)
 	if err != nil {
 		return err
 	}
-	return c.ch.PublishWithContext(
+	err = c.ch.PublishWithContext(
 		context.Background(),
 		c.exchange,
 		topic,
 		false,
 		false,
 		amqp.Publishing{
-			ContentType:  c.ICodec.MIMEType(),
+			ContentType:  c.ctx.ICodec.MIMEType(),
 			DeliveryMode: amqp.Persistent,
 			Body:         body,
 		},
 	)
+	if err == amqp.ErrClosed {
+		c.ctx.reconnecting.Do(func() {
+			c.ctx.reconnectCh <- true
+		})
+	}
+	return err
 }
 
 func (c *Channel) Subscribe(topic string, handler mq.MessageHandler) error {
-	c.topic = topic
-	c.handler = handler
-	var deliveryCh <-chan amqp.Delivery
+	var (
+		deliveryCh <-chan amqp.Delivery
+		consumerId = fmt.Sprintf("%s%d", c.ctx.consumerName, c.ctx.serialNumber())
+	)
 	deliveryCh, err := c.ch.Consume(
-		topic,          // queue
-		c.consumerName, // consumer name
+		topic,      // queue
+		consumerId, // consumer name
 		false,
 		false,
 		false,
@@ -58,68 +76,56 @@ func (c *Channel) Subscribe(topic string, handler mq.MessageHandler) error {
 	if err != nil {
 		return err
 	}
+	info := DeliveryInfo{
+		consumerId: consumerId,
+		topic:      topic,
+		handler:    handler,
+		queue:      deliveryCh,
+	}
+	c.Lock()
+	c.deliveries = append(c.deliveries, info)
+	c.Unlock()
 
-	go c.deliveryLoop(deliveryCh, handler)
-
-	//go func() {
-	//	var msg = message{Broker: c.Broker}
-	//
-	//	// panic handling
-	//	defer func() {
-	//
-	//		//c.ch.Close()
-	//		if err := recover(); err != nil {
-	//			c.ILogger.Errorf("panic error:%v >>>>>\t\n%s", err, string(debug.Stack()))
-	//			if !c.ch.IsClosed() {
-	//				c.restartTopicHandlerCh <- c
-	//				return
-	//			}
-	//		}
-	//
-	//		//Enter reconnection state
-	//		if c.conn.IsClosed() {
-	//			c.reconnecting.Do(func() {
-	//				c.ILogger.Error("connection is closed!!!")
-	//				close(c.restartTopicHandlerCh)
-	//			})
-	//		}
-	//	}()
-	//
-	//	for item := range deliveryCh {
-	//		msg.origin = item
-	//		handler(&msg)
-	//	}
-	//}()
+	go c.Delivering(info)
 	return nil
 }
 
-func (c *Channel) deliveryLoop(deliveryCh <-chan amqp.Delivery, handler mq.MessageHandler) {
-	var msg = message{Broker: c.Broker}
+func (c *Channel) Delivering(info DeliveryInfo) {
+	var msg = message{Broker: c.ctx}
 
 	// panic handling
 	defer func() {
-
 		//c.ch.Close()
 		if err := recover(); err != nil {
-			c.ILogger.Errorf("panic error:%v >>>>>\t\n%s", err, string(debug.Stack()))
+			c.ctx.Errorf("panic error:%v >>>>>\t\n%s", err, string(debug.Stack()))
 			if !c.ch.IsClosed() {
-				c.restartTopicHandlerCh <- c
+				c.Lock()
+				for i := 0; i < len(c.deliveries); i++ {
+					if c.deliveries[i].consumerId == info.consumerId {
+						errCancel := c.ch.Cancel(info.consumerId, true)
+						if errCancel != nil {
+							c.ctx.Errorf("Cancel consumerId-%s error:%s", info.consumerId, errCancel)
+						}
+						c.deliveries[i].isClosed = true
+					}
+				}
+				c.Unlock()
 				return
 			}
 		}
 
 		//Enter reconnection state
-		if c.conn.IsClosed() {
-			c.reconnecting.Do(func() {
-				c.ILogger.Error("connection is closed!!!")
-				close(c.restartTopicHandlerCh)
+		if c.ctx.conn.IsClosed() {
+			c.ctx.reconnecting.Do(func() {
+				c.ctx.Error("connection is closed!!!")
+				c.ctx.reconnectCh <- true
 			})
 		}
 	}()
 
-	for item := range deliveryCh {
+	for item := range info.queue {
 		msg.origin = item
-		handler(&msg)
+		info.handler(&msg)
 	}
 }
 

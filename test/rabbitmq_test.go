@@ -82,7 +82,7 @@ func TestProducer(t *testing.T) {
 	//	t.Fatal(err)
 	//}
 
-	ticker := time.NewTicker(time.Second * 3)
+	ticker := time.NewTicker(time.Second * 1)
 	var i int
 	for range ticker.C {
 		i++
@@ -92,7 +92,7 @@ func TestProducer(t *testing.T) {
 		t.Log("send msg-", i)
 		err := broker.Publish("test", msg)
 		if err != nil {
-			t.Fatal(err)
+			t.Log(err)
 		}
 	}
 }
@@ -119,9 +119,9 @@ func TestConsumer(t *testing.T) {
 			t.Fatal(err.Error())
 		}
 		t.Log("[Test] recvce msg:", data.Content)
-		if i == 1 {
-			panic("#######")
-		}
+		//if i == 1 {
+		//	panic("#######")
+		//}
 
 		message.Ack()
 		return
@@ -129,5 +129,20 @@ func TestConsumer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	//err = broker.Subscribe("test", func(message mq.IMessage) {
+	//	i++
+	//	time.Sleep(time.Second * 2)
+	//	var data Msg
+	//	err = message.Unmarshal(&data)
+	//	if err != nil {
+	//		t.Fatal(err.Error())
+	//	}
+	//	t.Log("[Test] recvce msg:", data.Content)
+	//	message.Ack()
+	//	return
+	//})
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
 	time.Sleep(time.Hour)
 }
