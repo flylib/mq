@@ -99,7 +99,9 @@ func TestProducer(t *testing.T) {
 func TestConsumer(t *testing.T) {
 	broker := rabbitmq.NewBroker(
 		rabbitmq.WithDeclareQueues("test"),
-
+		rabbitmq.WithPanicHandler(func(message mq.IMessage, err error) {
+			t.Fatal(err)
+		}),
 		rabbitmq.MustWithLogger(builtinlog.NewLogger()),
 		rabbitmq.MustWithCodec(&json.Codec{}),
 	)
@@ -117,9 +119,9 @@ func TestConsumer(t *testing.T) {
 			t.Fatal(err.Error())
 		}
 		t.Log("[Test] recvce msg:", data.Content)
-		//if i == 1 {
-		//	panic("#######")
-		//}
+		if i == 1 {
+			panic("#######")
+		}
 
 		message.Ack()
 		return

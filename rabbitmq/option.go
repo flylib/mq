@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"github.com/flylib/interface/codec"
 	ilog "github.com/flylib/interface/log"
+	"github.com/flylib/interface/mq"
 	"time"
 )
 
@@ -62,5 +63,11 @@ func MustWithLogger(logger ilog.ILogger) Option {
 func MustWithCodec(c codec.ICodec) Option {
 	return func(o *Broker) {
 		o.ICodec = c
+	}
+}
+
+func WithPanicHandler(f func(mq.IMessage, error)) Option {
+	return func(o *Broker) {
+		o.onPanic = f
 	}
 }

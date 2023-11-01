@@ -11,20 +11,12 @@ import (
 
 // channel represents a task
 type Channel struct {
-	ctx      *Broker
-	ch       *amqp.Channel
-	exchange string
+	ctx        *Broker
+	ch         *amqp.Channel
+	exchange   string
+	deliveries []Delivery
 	sync.Map
 	sync.Mutex
-	deliveries []DeliveryInfo
-}
-
-type DeliveryInfo struct {
-	isClosed   bool
-	consumerId string
-	topic      string
-	handler    mq.MessageHandler
-	queue      <-chan amqp.Delivery
 }
 
 func (c *Channel) Close() error {
@@ -76,21 +68,23 @@ func (c *Channel) Subscribe(topic string, handler mq.MessageHandler) error {
 	if err != nil {
 		return err
 	}
-	info := DeliveryInfo{
+	delivery := Delivery{
 		consumerId: consumerId,
 		topic:      topic,
 		handler:    handler,
 		queue:      deliveryCh,
 	}
+
 	c.Lock()
-	c.deliveries = append(c.deliveries, info)
+	c.deliveries = append(c.deliveries, delivery)
 	c.Unlock()
 
-	go c.Delivering(info)
+	go c.Delivering(delivery)
 	return nil
 }
 
-func (c *Channel) Delivering(info DeliveryInfo) {
+// continuous delivery
+func (c *Channel) Delivering(delivery Delivery) {
 	var msg = message{Broker: c.ctx}
 
 	// panic handling
@@ -98,13 +92,16 @@ func (c *Channel) Delivering(info DeliveryInfo) {
 		//c.ch.Close()
 		if err := recover(); err != nil {
 			c.ctx.Errorf("panic error:%v >>>>>\t\n%s", err, string(debug.Stack()))
+			if c.ctx.onPanic != nil {
+				c.ctx.onPanic(&msg, fmt.Errorf("%v", err))
+			}
 			if !c.ch.IsClosed() {
 				c.Lock()
 				for i := 0; i < len(c.deliveries); i++ {
-					if c.deliveries[i].consumerId == info.consumerId {
-						errCancel := c.ch.Cancel(info.consumerId, true)
+					if c.deliveries[i].consumerId == delivery.consumerId {
+						errCancel := c.ch.Cancel(delivery.consumerId, true)
 						if errCancel != nil {
-							c.ctx.Errorf("Cancel consumerId-%s error:%s", info.consumerId, errCancel)
+							c.ctx.Errorf("Cancel consumerId-%s error:%s", delivery.consumerId, errCancel)
 						}
 						c.deliveries[i].isClosed = true
 					}
@@ -123,9 +120,9 @@ func (c *Channel) Delivering(info DeliveryInfo) {
 		}
 	}()
 
-	for item := range info.queue {
+	for item := range delivery.queue {
 		msg.origin = item
-		info.handler(&msg)
+		delivery.handler(&msg)
 	}
 }
 

@@ -29,6 +29,7 @@ type Broker struct {
 	sync.Mutex
 	declareQueues []string
 	serial        int32
+	onPanic       func(mq.IMessage, error)
 }
 
 func NewBroker(options ...Option) mq.IBroker {
@@ -55,6 +56,7 @@ func (b *Broker) Connect(url string) (err error) {
 		return err
 	}
 	b.url = url
+
 	//default channel
 	defaultCh, err := b.OpenChannel(b.defaultExchange)
 	if err != nil {
@@ -62,9 +64,9 @@ func (b *Broker) Connect(url string) (err error) {
 	}
 
 	//declare queues for store message
-	declarer := defaultCh.(interface{ DeclareQueue(queue string) error })
+	ch := defaultCh.(*Channel)
 	for _, queue := range b.declareQueues {
-		err = declarer.DeclareQueue(queue)
+		err = ch.DeclareQueue(queue)
 		if err != nil {
 			return err
 		}
@@ -139,13 +141,13 @@ func (b *Broker) reconnect() error {
 		b.channels[i].ch = channel
 
 		//var deliveries []<-chan amqp.Delivery
-		for j, item := range b.channels[i].deliveries {
-			if item.isClosed {
+		for j, d := range b.channels[i].deliveries {
+			if d.isClosed {
 				continue
 			}
 			queue, err := channel.Consume(
-				item.topic,      // queue
-				item.consumerId, // consumer name
+				d.topic,
+				d.consumerId, // consumer name
 				false,
 				false,
 				false,
@@ -162,6 +164,7 @@ func (b *Broker) reconnect() error {
 	return nil
 }
 
+// Service serial number
 func (b *Broker) serialNumber() int32 {
 	atomic.AddInt32(&b.serial, 1)
 	return b.serial
