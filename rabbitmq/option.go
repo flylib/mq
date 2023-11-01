@@ -53,12 +53,6 @@ func WithDeclareQueues(queues ...string) Option {
 	}
 }
 
-func WithUrl(url string) Option {
-	return func(o *Broker) {
-		o.url = url
-	}
-}
-
 func MustWithLogger(logger ilog.ILogger) Option {
 	return func(o *Broker) {
 		o.ILogger = logger

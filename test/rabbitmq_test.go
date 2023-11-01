@@ -16,14 +16,13 @@ type Msg struct {
 
 func TestProducer(t *testing.T) {
 	broker := rabbitmq.NewBroker(
-		rabbitmq.WithUrl("amqp://admin:admin@192.168.119.128:5672"),
 		rabbitmq.WithDeclareQueues("test"),
 
 		rabbitmq.MustWithLogger(builtinlog.NewLogger()),
 		rabbitmq.MustWithCodec(&json.Codec{}),
 	)
 
-	err := broker.Connect()
+	err := broker.Connect("amqp://admin:admin@192.168.119.128:5672")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,13 +98,12 @@ func TestProducer(t *testing.T) {
 
 func TestConsumer(t *testing.T) {
 	broker := rabbitmq.NewBroker(
-		rabbitmq.WithUrl("amqp://admin:admin@192.168.119.128:5672"),
 		rabbitmq.WithDeclareQueues("test"),
 
 		rabbitmq.MustWithLogger(builtinlog.NewLogger()),
 		rabbitmq.MustWithCodec(&json.Codec{}),
 	)
-	err := broker.Connect()
+	err := broker.Connect("amqp://admin:admin@192.168.119.128:5672")
 	if err != nil {
 		t.Fatal(err)
 	}

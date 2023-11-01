@@ -50,11 +50,12 @@ func NewBroker(options ...Option) mq.IBroker {
 
 }
 
-func (b *Broker) Connect() (err error) {
-	b.conn, err = amqp.Dial(b.url)
+func (b *Broker) Connect(url string) (err error) {
+	b.conn, err = amqp.Dial(url)
 	if err != nil {
 		return err
 	}
+	b.url = url
 	//default channel
 	defaultCh, err := b.OpenChannel(b.defaultExchange)
 	if err != nil {
